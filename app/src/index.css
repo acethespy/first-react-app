@@ -5,18 +5,26 @@ body {
 
 .flex {
   display: flex;
-
+  flex-direction: row;
 }
 
 .sidebar {
   width: 300px;
   height: 600px;
-  flex-direction: row;
+  flex-direction: column;
   background-color: black;
   color: white;
+  display: flex;
+}
+
+.text-div {
+  height: 85%;
+}
+
+.dancer-section {
+  text-align: center;
 }
 
 .stage {
-  flex-direction: row;
   background-color: white;
 }

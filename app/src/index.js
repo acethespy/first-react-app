@@ -4,45 +4,6 @@ import ReactDOM from "react-dom";
 import { Stage, Layer, Rect, Circle, Group, Text, Line } from "react-konva";
 import './index.css';
 
-class ColoredRect extends React.Component {
-    changeSize = () => {
-        // to() is a method of `Konva.Node` instances
-        this.rect.to({
-            scaleX: Math.random() + 0.8,
-            scaleY: Math.random() + 0.8,
-            duration: 0.2
-        });
-    };
-    render() {
-        return (
-            <Group draggable>
-                <Rect
-                    x={20}
-                    y={20}
-                    width={50}
-                    height={50}
-                    fill="red"
-                    ref={node => {
-                        this.rect = node;
-                    }}
-                    shadowBlur={5}
-                />
-                <Rect
-                    x={20}
-                    y={30}
-                    width={50}
-                    height={50}
-                    fill="red"
-                    ref={node => {
-                        this.rect = node;
-                    }}
-                    shadowBlur={5}
-                />
-            </Group>
-        );
-    }
-}
-
 class Dancer extends React.Component {
     update = () => {
         const unit = this.props.unit;
@@ -70,48 +31,97 @@ class Dancer extends React.Component {
                     fill="red"
                 />
                 <Text 
-                    text={this.props.id}
-                    x={0}
-                    y={0}
+                    text={this.props.name}
+                    x={-20}
+                    y={-10}
+                    width={40}
+                    height={20}
+                    align='center'
+                    verticalAlign='middle'
                 />
             </Group>
         );
     }
 }
 
-class AddDancerButton extends React.Component {
+class AddDancerSection extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            validName: true,
+        };
+    }
+    
+    addDancer = () => {
+        const name = this.refs.dancerName.value;
+        if (this.props.addDancer(name) === false) {
+            this.setState({
+                validName: false,
+            });
+        } else {
+            this.setState({
+                validName: true,
+            });
+            this.refs.dancerName.value = '';
+        }
+
+    }
+
     render() {
+        var errorMessage = null;
+        if (!this.state.validName) {
+            errorMessage = 'Error: Blank or duplicate dancer name';
+        }
         return(
-            <button onClick={() => this.props.addDancer()}>
-                Add Dancer
-            </button>
-            
+            <div className='dancer-section'>
+                <div>
+                    <label>Dancer Name:</label>
+                    <input name="dancer_name" ref='dancerName' />
+                </div>
+                <div>
+                    <button onClick={this.addDancer}>
+                        Add Dancer
+                    </button>
+                </div>
+                <div>
+                    {errorMessage}
+                </div>
+            </div>
         );
     }
 }
 
+
 class Sidebar extends React.Component {
     render() {
-        var text = '';
+        var dancerInfo = [];
+        let formation = this.props.formation;
         let dancers = this.props.dancers;
-        text = JSON.stringify(dancers);
+        for (let key in dancers) {
+            if (formation[key]) {
+                dancerInfo.push(<li>{dancers[key] + ': (' + formation[key]['x'] + ', ' + formation[key]['y'] + ')'}</li>)
+            } else {
+                dancerInfo.push(<li>{dancers[key] + ': N/A'}<button onClick={() => this.props.addToFormation(key)}>Add To Formation</button></li>)
+            }
+        }
         // for (key in dancers) {
         //     text = text + 'Id: ' + key + ' x: ' + dancers[key]['x']
         // }
         return (
             <div className='sidebar'>
-                {text}
-                <AddDancerButton addDancer={() => this.props.addDancer()}/>
+                <div className='text-div'>
+                    <ul>
+                        {dancerInfo}
+                    </ul>
+
+                </div>
+                <AddDancerSection addDancer={this.props.addDancer}/>
             </div>
         );
     }
 }
 
 class Canvas extends React.Component {
-    constructor(props) {
-        super(props);
-        
-    }
 
     updateDancer = (id, x, y) => {
         const unit = this.props.unit;
@@ -131,10 +141,11 @@ class Canvas extends React.Component {
         for (let i = unit; i < height; i += unit) {
             gridComponents.push(<Line points={[0, i, width, i]} stroke={'grey'} strokeWidth={2} opacity={.2} />)
         }
+        const formation = Object.assign({}, this.props.formation);
         const dancers = Object.assign({}, this.props.dancers);
         var dancersComponents = [];
-        for (let key in dancers) {
-            dancersComponents.push(<Dancer id={key} x={dancers[key]['x']} y={dancers[key]['y']} update={this.props.update} unit={this.props.unit} />);
+        for (let key in formation) {
+            dancersComponents.push(<Dancer id={key} name={dancers[key]} x={formation[key]['x']} y={formation[key]['y']} update={this.props.update} unit={this.props.unit} />);
         }
         return(
             <Stage className='stage' width={this.props.width} height={this.props.height}>
@@ -151,49 +162,64 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            dancers: {
-                '0': this.defaultDancer(),
+            formation: {
             },
-            nextId: 1,
+            dancers: {
+            },
+            nextId: 0,
         };
     }
 
-    defaultDancer() {
+    defaultPos() {
         return ({x: 40, y: 40})
     }
 
     updateDancer = (id, x, y) => {
-        let dancers = Object.assign({}, this.state.dancers);
-        dancers[id] = {
+        let formation = Object.assign({}, this.state.formation);
+        formation[id] = {
             x: x,
-            y: y
+            y: y,
         };
         this.setState({
-            dancers: dancers,
-            nextId: this.state.nextId
+            formation: formation,
         });
     }
 
-    addDancer = () => {
+    addToFormation = (id) => {
+        let formation = Object.assign({}, this.state.formation);
+        if (!formation[id]) {
+            formation[id] = this.defaultPos();
+        }
+        this.setState({
+            formation: formation,
+        });
+    }
+
+    addDancer = (name) => {
+        name = name.trim();
+        if (name === null || name === '') {
+            return false;
+        }
         let dancers = Object.assign({}, this.state.dancers);
+        for (let key in dancers) {
+            if (dancers[key].toLowerCase() === name.toLowerCase()) {
+                return false;
+            }
+        }
         const currentId = this.state.nextId;
-        dancers[currentId.toString()] = this.defaultDancer();
+        dancers[currentId.toString()] = name;
         this.setState({
             dancers: dancers,
             nextId: (currentId + 1)
         });
+        return true;
     }
 
     render() {
-        const dancers = Object.assign({}, this.state.dancers);
-        var dancersComponents = [];
-        for (let key in dancers) {
-            dancersComponents.push(<Dancer id={key} x={dancers[key]['x']} y={dancers[key]['y']} update={this.updateDancer} />);
-        }
         return (
             <div className='flex'>
-                <Canvas dancers={this.state.dancers} update={this.updateDancer} width={600} height={600} unit={40} />
-                <Sidebar dancers={Object.assign({}, this.state.dancers)} addDancer={() => this.addDancer()} />
+                <Canvas dancers={Object.assign({}, this.state.dancers)} formation={this.state.formation} update={this.updateDancer} width={600} height={600} unit={40} />
+                <Sidebar addToFormation={this.addToFormation} dancers={Object.assign({}, this.state.dancers)} formation={Object.assign({}, this.state.formation)} addDancer={this.addDancer} />
             </div>
         );
     }
