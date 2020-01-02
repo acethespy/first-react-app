@@ -3,6 +3,7 @@ import Konva from "konva";
 import ReactDOM from "react-dom";
 import { Stage, Layer, Rect, Circle, Group, Text, Line } from "react-konva";
 import './index.css';
+import Reorder, { reorder, reorderImmutable, reorderFromTo, reorderFromToImmutable } from 'react-reorder';
 
 class Dancer extends React.Component {
     update = () => {
@@ -64,7 +65,6 @@ class AddDancerSection extends React.Component {
             });
             this.refs.dancerName.value = '';
         }
-
     }
 
     render() {
@@ -113,7 +113,6 @@ class Sidebar extends React.Component {
                     <ul>
                         {dancerInfo}
                     </ul>
-
                 </div>
                 <AddDancerSection addDancer={this.props.addDancer}/>
             </div>
@@ -158,15 +157,78 @@ class Canvas extends React.Component {
     }
 }
 
+class FormationTimeline extends React.Component {
+
+    onReorder(event, previousIndex, nextIndex, fromId, toId) {
+        this.props.setFormOrder(reorder(this.props.formationOrder, previousIndex, nextIndex));
+    }
+
+    onReorderGroup(event, previousIndex, nextIndex, fromId, toId) {
+        if (fromId === toId) {
+            const list = reorderImmutable(this.state[fromId], previousIndex, nextIndex);
+
+            this.setState({
+                [fromId]: list
+            });
+        } else {
+            const lists = reorderFromToImmutable({
+                from: this.state[fromId],
+                to: this.state[toId]
+            }, previousIndex, nextIndex);
+
+            this.setState({
+                [fromId]: lists.from,
+                [toId]: lists.to
+            });
+        }
+    }
+
+    render() {
+        return(
+            <Reorder
+                className="timeline"
+                reorderId="formations-list" // Unique ID that is used internally to track this list (required)
+                reorderGroup="formations-group" // A group ID that allows items to be dragged between lists of the same group (optional)
+                component="div" // Tag name or Component to be used for the wrapping element (optional), defaults to 'div'
+                placeholderClassName="placeholder" // Class name to be applied to placeholder elements (optional), defaults to 'placeholder'
+                draggedClassName="dragged" // Class name to be applied to dragged elements (optional), defaults to 'dragged'
+                lock="vertical" // Lock the dragging direction (optional): vertical, horizontal (do not use with groups)
+                holdTime={500} // Default hold time before dragging begins (mouse & touch) (optional), defaults to 0
+                onReorder={this.onReorder.bind(this)} // Callback when an item is dropped (you will need this to update your state)
+                autoScroll={true} // Enable auto-scrolling when the pointer is close to the edge of the Reorder component (optional), defaults to true
+            >
+                {
+                    this.props.formationOrder.map((item) => (
+                        <div onClick={() => {this.props.setCurrentForm(item)}} className='timeline-formation' key={item}>
+                            {item}
+                        </div>
+                    ))
+                    /*
+                    Note this example is an ImmutableJS List so we must convert it to an array.
+                    I've left this up to you to covert to an array, as react-reorder updates a lot,
+                    and if I called this internally it could get rather slow,
+                    whereas you have greater control over your component updates.
+                    */
+                }
+            </Reorder>
+        );
+    }
+}
+
 class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            formation: {
+            formations: {
+                '0': {},
+                '1': {},
+                '2': {},
             },
-            dancers: {
-            },
+            dancers: {},
+            formationOrder: ['0', '1', '2'],
             nextId: 0,
+            nextFormId: 3,
+            currentFormId: '0',
         };
     }
 
@@ -175,23 +237,23 @@ class App extends Component {
     }
 
     updateDancer = (id, x, y) => {
-        let formation = Object.assign({}, this.state.formation);
-        formation[id] = {
+        let formations = Object.assign({}, this.state.formations);
+        formations[this.state.currentFormId][id] = {
             x: x,
             y: y,
         };
         this.setState({
-            formation: formation,
+            formations: formations,
         });
     }
 
     addToFormation = (id) => {
-        let formation = Object.assign({}, this.state.formation);
-        if (!formation[id]) {
-            formation[id] = this.defaultPos();
+        let formations = Object.assign({}, this.state.formations);
+        if (!formations[this.state.currentFormId][id]) {
+            formations[this.state.currentFormId][id] = this.defaultPos();
         }
         this.setState({
-            formation: formation,
+            formations: formations,
         });
     }
 
@@ -215,11 +277,31 @@ class App extends Component {
         return true;
     }
 
+    setCurrentForm = (id) => {
+        this.setState({
+            currentFormId: id,
+        });
+    }
+
+    setFormOrder = (newFormOrder) => {
+        this.setState({
+            formationOrder: newFormOrder,
+        });
+    }
+
     render() {
         return (
-            <div className='flex'>
-                <Canvas dancers={Object.assign({}, this.state.dancers)} formation={this.state.formation} update={this.updateDancer} width={600} height={600} unit={40} />
-                <Sidebar addToFormation={this.addToFormation} dancers={Object.assign({}, this.state.dancers)} formation={Object.assign({}, this.state.formation)} addDancer={this.addDancer} />
+            <div className='outerDiv'>
+                <div className='upperDiv'>
+                    <Canvas dancers={this.state.dancers} formation={this.state.formations[this.state.currentFormId]} update={this.updateDancer} width={600} height={600} unit={40} />
+                    <Sidebar addToFormation={this.addToFormation} dancers={this.state.dancers} formation={this.state.formations[this.state.currentFormId]} addDancer={this.addDancer} />
+                </div>
+                <div className='lowerDiv'>
+                    <FormationTimeline setCurrentForm={this.setCurrentForm} setFormOrder={this.setFormOrder} formationOrder={this.state.formationOrder} currentFormId={this.state.currentFormId} />
+                    <div>
+                        {'Current Formation: ' + this.state.currentFormId}
+                    </div>
+                </div>
             </div>
         );
     }
