@@ -1,8 +1,12 @@
 import React, { Component } from "react";
+import { connect } from 'react-redux'
+
 import Canvas from "./Canvas"
 import Sidebar from "./Sidebar"
 import FormationTimeline from "./FormationTimeline"
 import Konva from "konva";
+
+import updateDancer from '../reducers/app'
 
 class App extends Component {
     constructor(props) {
@@ -79,14 +83,32 @@ class App extends Component {
     }
 
     render() {
+        console.log(this.state)
         return (
             <div className='outerDiv'>
                 <div className='upperDiv'>
-                    <Canvas dancers={this.state.dancers} formation={this.state.formations[this.state.currentFormId]} update={this.updateDancer} width={600} height={600} unit={40} />
-                    <Sidebar addToFormation={this.addToFormation} dancers={this.state.dancers} formation={this.state.formations[this.state.currentFormId]} addDancer={this.addDancer} />
+                    <Canvas
+                      dancers={this.state.dancers}
+                      formation={this.state.formations[this.state.currentFormId]}
+                      update={this.updateDancer}
+                      width={600}
+                      height={600}
+                      unit={40}
+                    />
+                    <Sidebar
+                      addToFormation={this.addToFormation}
+                      dancers={this.state.dancers}
+                      formation={this.state.formations[this.state.currentFormId]}
+                      addDancer={this.addDancer}
+                    />
                 </div>
                 <div className='lowerDiv'>
-                    <FormationTimeline setCurrentForm={this.setCurrentForm} setFormOrder={this.setFormOrder} formationOrder={this.state.formationOrder} currentFormId={this.state.currentFormId} />
+                    <FormationTimeline
+                      setCurrentForm={this.setCurrentForm}
+                      setFormOrder={this.setFormOrder}
+                      formationOrder={this.state.formationOrder}
+                      currentFormId={this.state.currentFormId}
+                    />
                     <div>
                         {'Current Formation: ' + this.state.currentFormId}
                     </div>
@@ -96,4 +118,15 @@ class App extends Component {
     }
 }
 
-export default App;
+const mapStateToProps = state => ({
+
+})
+
+const mapDispatchToProps = dispatch => ({
+
+})
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(App);

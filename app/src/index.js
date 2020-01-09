@@ -7,8 +7,9 @@ import App from "./components/App"
 import { Provider } from 'react-redux'
 import { createStore } from 'redux'
 import rootReducer from './reducers/rootReducer'
+import initialState from './initialState.js'
 
-const store = createStore(rootReducer)
+const store = createStore(rootReducer, initialState)
 
 ReactDOM.render(
     <Provider store={store}>
