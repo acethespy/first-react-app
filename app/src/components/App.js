@@ -7,6 +7,7 @@ import FormationTimeline from "./FormationTimeline"
 import Konva from "konva";
 
 import { updateDancerPosition, updateDancerPositionAgain } from '../actions/formationsActions'
+import { updateCurrentFormationId } from '../actions/metadataActions'
 
 class App extends Component {
     constructor(props) {
@@ -31,7 +32,7 @@ class App extends Component {
 
     updateDancer = (id, x, y) => {
         let formations = Object.assign({}, this.state.formations);
-        formations[this.state.currentFormId][id] = {
+        formations[this.props.metadata.currentFormationId][id] = {
             x: x,
             y: y,
         };
@@ -40,7 +41,11 @@ class App extends Component {
         });
 
         if (x == 40) {
-            this.props.updateDancerPosition();
+            this.props.updateDancerPosition({
+                id: 'id1',
+                x: '5',
+                y: '5'
+            });
             console.log('store');
             console.log(this.props);
         } else {
@@ -52,8 +57,8 @@ class App extends Component {
 
     addToFormation = (id) => {
         let formations = Object.assign({}, this.state.formations);
-        if (!formations[this.state.currentFormId][id]) {
-            formations[this.state.currentFormId][id] = this.defaultPos();
+        if (!formations[this.props.metadata.currentFormationId][id]) {
+            formations[this.props.metadata.currentFormationId][id] = this.defaultPos();
         }
         this.setState({
             formations: formations,
@@ -85,6 +90,9 @@ class App extends Component {
         this.setState({
             currentFormId: id,
         });
+
+        this.props.updateCurrentFormationId({id: id});
+        console.log(this.props);
     }
 
     setFormOrder = (newFormOrder) => {
@@ -99,7 +107,7 @@ class App extends Component {
                 <div className='upperDiv'>
                     <Canvas
                       dancers={this.state.dancers}
-                      formation={this.state.formations[this.state.currentFormId]}
+                      formation={this.state.formations[this.props.metadata.currentFormationId]}
                       update={this.updateDancer}
                       width={600}
                       height={600}
@@ -108,7 +116,7 @@ class App extends Component {
                     <Sidebar
                       addToFormation={this.addToFormation}
                       dancers={this.state.dancers}
-                      formation={this.state.formations[this.state.currentFormId]}
+                      formation={this.state.formations[this.props.metadata.currentFormationId]}
                       addDancer={this.addDancer}
                     />
                 </div>
@@ -117,10 +125,10 @@ class App extends Component {
                       setCurrentForm={this.setCurrentForm}
                       setFormOrder={this.setFormOrder}
                       formationOrder={this.state.formationOrder}
-                      currentFormId={this.state.currentFormId}
+                      currentFormId={this.props.metadata.currentFormationId}
                     />
                     <div>
-                        {'Current Formation: ' + this.state.currentFormId}
+                        {'Current Formation: ' + this.props.metadata.currentFormationId}
                     </div>
                 </div>
             </div>
@@ -130,11 +138,13 @@ class App extends Component {
 
 const mapStateToProps = state => ({
     formations: state.formations,
+    metadata: state.metadata,
 })
 
 const mapDispatchToProps = {
     updateDancerPosition,
     updateDancerPositionAgain,
+    updateCurrentFormationId,
 };
 
 export default connect(
