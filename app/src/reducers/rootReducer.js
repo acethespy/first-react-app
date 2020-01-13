@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux'
-import app from './app'
+import FormationsReducer from './formationsReducer'
 
 export default combineReducers({
-  app,
+  formations: FormationsReducer,
 });

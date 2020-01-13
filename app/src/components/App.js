@@ -6,7 +6,7 @@ import Sidebar from "./Sidebar"
 import FormationTimeline from "./FormationTimeline"
 import Konva from "konva";
 
-import updateDancer from '../reducers/app'
+import { updateDancerPosition, updateDancerPositionAgain } from '../actions/formationsActions'
 
 class App extends Component {
     constructor(props) {
@@ -38,6 +38,16 @@ class App extends Component {
         this.setState({
             formations: formations,
         });
+
+        if (x == 40) {
+            this.props.updateDancerPosition();
+            console.log('store');
+            console.log(this.props);
+        } else {
+            this.props.updateDancerPositionAgain();
+            console.log('store again');
+            console.log(this.props);
+        }
     }
 
     addToFormation = (id) => {
@@ -67,6 +77,7 @@ class App extends Component {
             dancers: dancers,
             nextId: (currentId + 1)
         });
+
         return true;
     }
 
@@ -83,7 +94,6 @@ class App extends Component {
     }
 
     render() {
-        console.log(this.state)
         return (
             <div className='outerDiv'>
                 <div className='upperDiv'>
@@ -119,14 +129,15 @@ class App extends Component {
 }
 
 const mapStateToProps = state => ({
-
+    formations: state.formations,
 })
 
-const mapDispatchToProps = dispatch => ({
-
-})
+const mapDispatchToProps = {
+    updateDancerPosition,
+    updateDancerPositionAgain,
+};
 
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps
+    mapStateToProps,
+    mapDispatchToProps,
 )(App);
