@@ -7,6 +7,7 @@ import FormationTimeline from "./FormationTimeline"
 import Konva from "konva";
 
 import { updateDancerPosition, updateDancerPositionAgain } from '../actions/formationsActions'
+import { addDancer } from '../actions/dancersActions'
 import { updateCurrentFormationId } from '../actions/metadataActions'
 
 class App extends Component {
@@ -87,10 +88,6 @@ class App extends Component {
     }
 
     setCurrentForm = (id) => {
-        this.setState({
-            currentFormId: id,
-        });
-
         this.props.updateCurrentFormationId({id: id});
         console.log(this.props);
     }
@@ -137,11 +134,13 @@ class App extends Component {
 }
 
 const mapStateToProps = state => ({
-    formations: state.formations,
     metadata: state.metadata,
+    formations: state.formations,
+    dancers: state.dancers,
 })
 
 const mapDispatchToProps = {
+    addDancer,
     updateDancerPosition,
     updateDancerPositionAgain,
     updateCurrentFormationId,

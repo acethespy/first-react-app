@@ -1,8 +1,10 @@
 const initialState = {
   formations: {
-      'id1': {},
-      'id2': {},
+      '0': {},
+      '1': {},
+      '2': {},
   },
+  dancers: {},
   metadata: {
       currentFormationId: '0',
   }
