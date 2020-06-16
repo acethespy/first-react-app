@@ -91,7 +91,6 @@ class AddDancerSection extends React.Component {
     }
 }
 
-
 class Sidebar extends React.Component {
     render() {
         var dancerInfo = [];
@@ -203,12 +202,6 @@ class FormationTimeline extends React.Component {
                             {item}
                         </div>
                     ))
-                    /*
-                    Note this example is an ImmutableJS List so we must convert it to an array.
-                    I've left this up to you to covert to an array, as react-reorder updates a lot,
-                    and if I called this internally it could get rather slow,
-                    whereas you have greater control over your component updates.
-                    */
                 }
             </Reorder>
         );
@@ -289,6 +282,18 @@ class App extends Component {
         });
     }
 
+    addFormation = ()=> {
+        let formations = Object.assign({}, this.state.formations);
+        let formationOrder = Object.assign([], this.state.formationOrder);
+        formations[this.state.nextFormId.toString()] = {};
+        formationOrder.push(this.state.nextFormId.toString());
+        this.setState({
+            formations: formations,
+            formationOrder: formationOrder,
+            nextFormId: this.state.nextFormId + 1,
+        })
+    }
+
     render() {
         return (
             <div className='outerDiv'>
@@ -301,6 +306,11 @@ class App extends Component {
                     <div>
                         {'Current Formation: ' + this.state.currentFormId}
                     </div>
+                    <div>
+                        <button onClick={this.addFormation}>
+                            Add Formation
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -311,3 +321,5 @@ ReactDOM.render(
     <App />,
     document.getElementById('root')
 );
+
+// Anime.js
